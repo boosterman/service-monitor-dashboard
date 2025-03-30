@@ -67,6 +67,7 @@ function updateServiceStatus(service) {
 
 app.get('/api/services', async (req, res) => {
   const services = loadServices();
+  console.log('Gelezen services:', services);
   const updated = await Promise.all(services.map(updateServiceStatus));
   res.json(updated);
 });
