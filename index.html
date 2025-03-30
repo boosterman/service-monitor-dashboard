@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Status Dashboard</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { padding: 10px; border-bottom: 1px solid #ccc; text-align: left; }
+    .online { color: green; font-weight: bold; }
+    .offline { color: red; font-weight: bold; }
+    .unknown { color: orange; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Status van Services</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Naam</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Laatste Check</th>
+      </tr>
+    </thead>
+    <tbody id="status-body"></tbody>
+  </table>
+
+  <script>
+    async function fetchStatus() {
+      const res = await fetch('/api/services');
+      const data = await res.json();
+      const tbody = document.getElementById('status-body');
+      tbody.innerHTML = '';
+      data.forEach(s => {
+        const row = document.createElement('tr');
+        row.innerHTML = \`
+          <td>\${s.name}</td>
+          <td>\${s.type}</td>
+          <td class="\${s.status}">\${s.status}</td>
+          <td>\${new Date(s.lastChecked).toLocaleString()}</td>
+        \`;
+        tbody.appendChild(row);
+      });
+    }
+
+    fetchStatus();
+    setInterval(fetchStatus, 60000);
+  </script>
+</body>
+</html>
