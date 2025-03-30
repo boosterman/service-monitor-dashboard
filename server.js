@@ -29,15 +29,20 @@ function saveServices(services) {
 function updateServiceStatus(service) {
   return new Promise((resolve) => {
     const result = { ...service, lastChecked: new Date().toISOString() };
+
     if (service.type === 'http') {
       axios.get(service.url, { timeout: 5000 })
         .then(() => resolve({ ...result, status: 'online' }))
         .catch(() => resolve({ ...result, status: 'offline' }));
-    } else if (service.type === 'ping') {
+    }
+
+    else if (service.type === 'ping') {
       exec(`ping -c 1 ${service.host}`, (error) => {
         resolve({ ...result, status: error ? 'offline' : 'online' });
       });
-    } else if (service.type === 'tcp') {
+    }
+
+    else if (service.type === 'tcp') {
       const socket = new net.Socket();
       socket.setTimeout(5000);
       socket.on('connect', () => {
@@ -52,7 +57,9 @@ function updateServiceStatus(service) {
         resolve({ ...result, status: 'offline' });
       });
       socket.connect(service.port, service.host);
-    } else {
+    }
+
+    else {
       resolve({ ...result, status: 'unknown' });
     }
   });
@@ -65,5 +72,23 @@ app.get('/api/services', async (req, res) => {
 });
 
 app.post('/api/services', (req, res) => {
-  if (req.headers.authorization !== `Bearer ${TOKEN}`)
+  if (req.headers.authorization !== `Bearer ${TOKEN}`) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const services = loadServices();
+  const newService = req.body;
+  services.push(newService);
+  saveServices(services);
+  res.json({ success: true });
+});
 
+app.delete('/api/services/:id', (req, res) => {
+  if (req.headers.authorization !== `Bearer ${TOKEN}`) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const services = loadServices().filter(s => s.id !== req.params.id);
+  saveServices(services);
+  res.json({ success: true });
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
