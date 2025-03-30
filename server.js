@@ -15,7 +15,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-const dataFile = path.join(__dirname, 'services.json');
+const dataFile = path.join(__dirname, 'public', 'services.json');
 
 function loadServices() {
   if (!fs.existsSync(dataFile)) return [];
