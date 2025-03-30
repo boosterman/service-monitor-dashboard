@@ -6,16 +6,17 @@
     "url": "https://www.adaptable.nl"
   },
   {
-    "id": "google-dns",
-    "name": "Google DNS",
-    "type": "ping",
-    "host": "8.8.8.8"
+    "id": "google-dns-tcp",
+    "name": "Google DNS TCP (poort 53)",
+    "type": "tcp",
+    "host": "8.8.8.8",
+    "port": 53
   },
   {
-    "id": "smtp-check",
-    "name": "SMTP Poort 25 Test",
+    "id": "smtp-gmail",
+    "name": "SMTP Gmail (poort 587)",
     "type": "tcp",
-    "host": "mail.example.com",
-    "port": 25
+    "host": "smtp.gmail.com",
+    "port": 587
   }
 ]
