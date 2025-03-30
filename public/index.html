@@ -24,29 +24,41 @@
         <th>Laatste Check</th>
       </tr>
     </thead>
-    <tbody id="status-body"></tbody>
+    <tbody id="status-body">
+      <tr><td colspan="4">Laden...</td></tr>
+    </tbody>
   </table>
 
   <script>
     async function fetchStatus() {
-      const res = await fetch('/api/services');
-      const data = await res.json();
-      const tbody = document.getElementById('status-body');
-      tbody.innerHTML = '';
-      data.forEach(s => {
-        const row = document.createElement('tr');
-        row.innerHTML = \`
-          <td>\${s.name}</td>
-          <td>\${s.type}</td>
-          <td class="\${s.status}">\${s.status}</td>
-          <td>\${new Date(s.lastChecked).toLocaleString()}</td>
-        \`;
-        tbody.appendChild(row);
-      });
+      try {
+        const res = await fetch('/api/services');
+        const data = await res.json();
+        const tbody = document.getElementById('status-body');
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">Geen services gevonden.</td></tr>';
+        }
+
+        data.forEach(s => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.type}</td>
+            <td class="${s.status}">${s.status}</td>
+            <td>${new Date(s.lastChecked).toLocaleString()}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (e) {
+        console.error('Fout bij ophalen services:', e);
+        document.getElementById('status-body').innerHTML = '<tr><td colspan="4">Fout bij ophalen van data.</td></tr>';
+      }
     }
 
     fetchStatus();
-    setInterval(fetchStatus, 60000);
+    setInterval(fetchStatus, 60000); // elke minuut refresh
   </script>
 </body>
 </html>
