@@ -1,0 +1,21 @@
+[
+  {
+    "id": "adaptable-site",
+    "name": "Website Adaptable",
+    "type": "http",
+    "url": "https://www.adaptable.nl"
+  },
+  {
+    "id": "google-dns",
+    "name": "Google DNS",
+    "type": "ping",
+    "host": "8.8.8.8"
+  },
+  {
+    "id": "smtp-check",
+    "name": "SMTP Poort 25 Test",
+    "type": "tcp",
+    "host": "mail.example.com",
+    "port": 25
+  }
+]
