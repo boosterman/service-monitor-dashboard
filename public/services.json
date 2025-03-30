@@ -6,6 +6,49 @@
     "url": "https://www.adaptable.nl"
   },
   {
+    "id": "google",
+    "name": "Google",
+    "type": "http",
+    "url": "https://www.google.com"
+  },
+  {
+    "id": "youtube",
+    "name": "YouTube",
+    "type": "http",
+    "url": "https://www.youtube.com"
+  },
+  {
+    "id": "cloudflare",
+    "name": "Cloudflare",
+    "type": "http",
+    "url": "https://www.cloudflare.com"
+  },
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "type": "http",
+    "url": "https://www.microsoft.com"
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "type": "http",
+    "url": "https://www.github.com"
+  },
+  {
+    "id": "dropbox",
+    "name": "Dropbox",
+    "type": "http",
+    "url": "https://www.dropbox.com"
+  },
+  {
+    "id": "gmail-smtp",
+    "name": "SMTP Gmail (poort 587)",
+    "type": "tcp",
+    "host": "smtp.gmail.com",
+    "port": 587
+  },
+  {
     "id": "google-dns-tcp",
     "name": "Google DNS TCP (poort 53)",
     "type": "tcp",
@@ -13,10 +56,10 @@
     "port": 53
   },
   {
-    "id": "smtp-gmail",
-    "name": "SMTP Gmail (poort 587)",
+    "id": "ntp-udp",
+    "name": "NTP Pool TCP (poort 123)",
     "type": "tcp",
-    "host": "smtp.gmail.com",
-    "port": 587
+    "host": "pool.ntp.org",
+    "port": 123
   }
 ]
