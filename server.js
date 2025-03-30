@@ -65,4 +65,5 @@ app.get('/api/services', async (req, res) => {
 });
 
 app.post('/api/services', (req, res) => {
-  if (req.headers.authorization !== `Bearer ${TOKEN
+  if (req.headers.authorization !== `Bearer ${TOKEN}`)
+
