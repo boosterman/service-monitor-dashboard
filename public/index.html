@@ -53,7 +53,7 @@
             <td>${s.name}</td>
             <td>${s.type}</td>
             <td class="${s.status}">${s.status}</td>
-            <td>${new Date(s.timestamp).toLocaleString()}</td>
+            <td>${new Date(s.timestamp + 'Z').toLocaleString()}</td>
           `;
           tbody.appendChild(row);
         });
