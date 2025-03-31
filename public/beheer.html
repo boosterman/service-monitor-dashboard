@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Servicebeheer</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
+    h1 { margin-bottom: 0.5em; }
+    label { display: block; margin-top: 1em; }
+    input, select { width: 300px; padding: 8px; margin-top: 5px; }
+    button { margin-top: 1em; padding: 10px 15px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 2em; }
+    th, td { padding: 8px; border-bottom: 1px solid #ccc; }
+    .delete-btn { color: red; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Servicebeheer</h1>
+
+  <form id="add-form">
+    <label>Naam:
+      <input type="text" id="name" required />
+    </label>
+    <label>Type:
+      <select id="type">
+        <option value="http">HTTP</option>
+        <option value="tcp">TCP</option>
+      </select>
+    </label>
+    <label id="url-label">URL:
+      <input type="text" id="url" />
+    </label>
+    <label id="host-label" style="display: none;">Host:
+      <input type="text" id="host" />
+    </label>
+    <label id="port-label" style="display: none;">Port:
+      <input type="number" id="port" />
+    </label>
+    <button type="submit">Toevoegen</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr><th>Naam</th><th>Type</th><th>Actie</th></tr>
+    </thead>
+    <tbody id="services-list"></tbody>
+  </table>
+
+  <script>
+    const typeSelect = document.getElementById('type');
+    const urlLabel = document.getElementById('url-label');
+    const hostLabel = document.getElementById('host-label');
+    const portLabel = document.getElementById('port-label');
+
+    typeSelect.addEventListener('change', () => {
+      if (typeSelect.value === 'http') {
+        urlLabel.style.display = 'block';
+        hostLabel.style.display = 'none';
+        portLabel.style.display = 'none';
+      } else {
+        urlLabel.style.display = 'none';
+        hostLabel.style.display = 'block';
+        portLabel.style.display = 'block';
+      }
+    });
+
+    async function fetchServices() {
+      const res = await fetch('/api/services/all');
+      const data = await res.json();
+      const list = document.getElementById('services-list');
+      list.innerHTML = '';
+      data.forEach(s => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${s.name}</td><td>${s.type}</td>
+          <td><span class="delete-btn" onclick="removeService('${s.id}')">Verwijder</span></td>`;
+        list.appendChild(row);
+      });
+    }
+
+    async function removeService(id) {
+      await fetch('/api/services/' + id, { method: 'DELETE' });
+      fetchServices();
+    }
+
+    document.getElementById('add-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const type = document.getElementById('type').value;
+      const url = document.getElementById('url').value;
+      const host = document.getElementById('host').value;
+      const port = document.getElementById('port').value;
+      const body = {
+        id: name.toLowerCase().replace(/\s+/g, '-'),
+        name, type, url: url || null,
+        host: host || null,
+        port: port ? parseInt(port) : null
+      };
+      await fetch('/api/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      e.target.reset();
+      fetchServices();
+    });
+
+    fetchServices();
+  </script>
+</body>
+</html>
