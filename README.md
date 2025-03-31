@@ -1,59 +1,72 @@
-# Service Monitor Dashboard (met database)
+# Service Monitor Dashboard (met beheer en database)
 
-Een eenvoudig monitoringdashboard dat services controleert via HTTP of TCP en hun status opslaat in een SQLite-database. De frontend toont de laatste bekende status per service.
+Een intuïtief en uitbreidbaar monitoringdashboard waarmee je eenvoudig de status van externe services (HTTP of TCP) bewaakt. Inclusief database-opslag, automatische updates én een beheerpagina.
 
 ---
 
 ## ✅ Functionaliteiten
 
-- Realtime servicecontroles (via interval, niet per refresh)
-- Types: `http`, `tcp`
-- Statusopslag in SQLite (`monitor.db`)
-- Publiek dashboard toont laatste bekende status
+- Live statuscontrole via achtergrond-checks (elke minuut)
+- Types: `http` en `tcp`
+- Opslag van statussen in `monitor.db` (SQLite)
+- Frontend dashboard toont laatste bekende status
+- Beheerpagina voor:
+  - Toevoegen
+  - Verwijderen
+  - ✏️ Wijzigen van services
 - Automatische verversing frontend elke minuut
-- Tijdstip laatste vernieuwing zichtbaar
-- Geen live check op elke frontend-refresh
+- Tijdstip “Laatst bijgewerkt” zichtbaar in dashboard
+- Volledig zonder programmeerkennis te gebruiken
 
 ---
 
-## 📦 Installatie lokaal (voor test)
+## 📦 Installatie lokaal (voor testen)
 
 ```bash
 npm install
 node server.js
 ```
 
+Bezoek:
+- [http://localhost:3000](http://localhost:3000) → Dashboard
+- [http://localhost:3000/beheer.html](http://localhost:3000/beheer.html) → Beheerpagina
+
 ---
 
 ## ☁️ Deployen op Render
 
 1. Zet dit project op GitHub
-2. Maak een nieuw Web Service-project aan in Render
+2. Maak een nieuwe Web Service aan op [Render.com](https://render.com)
 3. Instellingen:
 
 | Instelling        | Waarde             |
 |-------------------|---------------------|
 | Start Command     | `node server.js`    |
 | Build Command     | *(leeg laten)*      |
-| Node.js versie    | Laat Render zelf kiezen |
-| Bestanden         | Voeg ook `monitor.db` toe aan de repo |
+| Node.js versie    | Laat Render kiezen  |
 
-4. Klik op **Manual Deploy** na elke wijziging
+4. Upload ook `monitor.db`, `package.json`, `public/`, enz.
+5. Klik op **Manual Deploy**
 
 ---
 
-## ➕ Services aanpassen
+## ➕ Services beheren
 
-Je kunt de services in de database beheren (toevoegen/verwijderen) met een SQLite-tool, of ik bouw later een beheer-UI voor je.
+Gebruik de beheerpagina `/beheer.html` om services:
+- Toe te voegen
+- Te wijzigen
+- Te verwijderen
+
+Alles gebeurt direct in de SQLite-database. Geen Postman of curl nodig.
 
 ---
 
 ## ⚠️ Let op
 
-- Ping-checks zijn uitgeschakeld (Render blokkeert ICMP)
-- `monitor.db` moet in de root van je project staan
-- Backend voert elke minuut automatische check uit
+- `monitor.db` moet aanwezig zijn in root van het project
+- Render ondersteunt geen ICMP-ping (alleen HTTP/TCP werken)
+- Tijdzone wordt automatisch aangepast in de frontend
 
 ---
 
-Gemaakt door Bastiaan + GPT. Vragen of uitbreidingen? Gewoon aangeven.
+Gemaakt door Bastiaan + GPT. Klaar voor meldingen, rapportage of grafieken? Open de volgende fase!
