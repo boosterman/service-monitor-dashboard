@@ -52,8 +52,8 @@
           row.innerHTML = `
             <td>${s.name}</td>
             <td>${s.type}</td>
-            <td class="${s.status}">${s.status}</td>
-            <td>${new Date(s.timestamp + 'Z').toLocaleString()}</td>
+            <td class="${s.status || 'unknown'}">${s.status || 'Onbekend'}</td>
+            <td>${s.timestamp ? new Date(s.timestamp + 'Z').toLocaleString() : 'Nog niet gecontroleerd'}</td>
 
           `;
           tbody.appendChild(row);
