@@ -6,6 +6,12 @@
     "url": "https://www.adaptable.nl"
   },
   {
+    "id": "lydis-site",
+    "name": "Website Lydis",
+    "type": "http",
+    "url": "https://www.lydis.nl"
+  },
+  {
     "id": "google",
     "name": "Google",
     "type": "http",
