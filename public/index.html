@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -6,6 +7,7 @@
   <style>
     body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
     h1 { color: #333; }
+    .timestamp { font-size: 0.9em; color: #666; margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { padding: 10px; border-bottom: 1px solid #ccc; text-align: left; }
     .online { color: green; font-weight: bold; }
@@ -15,6 +17,7 @@
 </head>
 <body>
   <h1>Status van Services</h1>
+  <div class="timestamp" id="timestamp">Laatst bijgewerkt: -</div>
   <table>
     <thead>
       <tr>
@@ -35,6 +38,9 @@
         const res = await fetch('/api/services');
         const data = await res.json();
         const tbody = document.getElementById('status-body');
+        const ts = document.getElementById('timestamp');
+        const now = new Date();
+        ts.textContent = 'Laatst bijgewerkt: ' + now.toLocaleString();
         tbody.innerHTML = '';
 
         if (data.length === 0) {
@@ -47,7 +53,7 @@
             <td>${s.name}</td>
             <td>${s.type}</td>
             <td class="${s.status}">${s.status}</td>
-            <td>${new Date(s.lastChecked).toLocaleString()}</td>
+            <td>${new Date(s.timestamp).toLocaleString()}</td>
           `;
           tbody.appendChild(row);
         });
@@ -58,7 +64,7 @@
     }
 
     fetchStatus();
-    setInterval(fetchStatus, 60000); // elke minuut refresh
+    setInterval(fetchStatus, 60000);
   </script>
 </body>
 </html>
