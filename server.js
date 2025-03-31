@@ -1,4 +1,3 @@
-
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -37,7 +36,33 @@ app.get('/api/services', (req, res) => {
   });
 });
 
-// Functie om status van service te checken
+// API: alle services ophalen (voor beheer)
+app.get('/api/services/all', (req, res) => {
+  db.all('SELECT id, name, type FROM services ORDER BY name', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+// API: service toevoegen
+app.post('/api/services', (req, res) => {
+  const { id, name, type, url, host, port } = req.body;
+  const stmt = `INSERT INTO services (id, name, type, url, host, port) VALUES (?, ?, ?, ?, ?, ?)`;
+  db.run(stmt, [id, name, type, url, host, port], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// API: service verwijderen
+app.delete('/api/services/:id', (req, res) => {
+  db.run('DELETE FROM services WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// Check logica
 function checkService(service, callback) {
   if (service.type === 'http') {
     axios.get(service.url, { timeout: 5000 })
@@ -63,7 +88,7 @@ function checkService(service, callback) {
   }
 }
 
-// Periodieke check van alle services
+// Periodieke checks
 function performChecks() {
   db.all('SELECT * FROM services', [], (err, services) => {
     if (err) {
@@ -81,8 +106,8 @@ function performChecks() {
   });
 }
 
-// Start interval: elke 60 sec
+// Start interval
 setInterval(performChecks, 60000);
-performChecks(); // ook meteen bij start
+performChecks();
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
