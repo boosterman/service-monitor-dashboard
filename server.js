@@ -9,14 +9,11 @@ const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
-
 const db = new sqlite3.Database('./monitor.db');
 
-// API: laatste status per service
 app.get('/api/services', (req, res) => {
   const query = `
     SELECT s.id, s.name, s.type, sl.status, sl.timestamp
@@ -29,59 +26,29 @@ app.get('/api/services', (req, res) => {
     ORDER BY s.name
   `;
   db.all(query, [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(rows);
-  });
-});
-
-// API: alle services ophalen (voor beheer)
-app.get('/api/services/all', (req, res) => {
-  db.all('SELECT id, name, type FROM services ORDER BY name', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
 });
 
-// API: service toevoegen
-app.post('/api/services', (req, res) => {
-  const { id, name, type, url, host, port } = req.body;
-  const stmt = `INSERT INTO services (id, name, type, url, host, port) VALUES (?, ?, ?, ?, ?, ?)`;
-  db.run(stmt, [id, name, type, url, host, port], (err) => {
+app.get('/api/uptime', (req, res) => {
+  const sql = \`
+    SELECT s.id, s.name,
+      ROUND(
+        100.0 * SUM(CASE WHEN sl.status = 'online' THEN 1 ELSE 0 END) / COUNT(sl.id), 1
+      ) AS uptime,
+      COUNT(sl.id) AS checks
+    FROM services s
+    JOIN status_logs sl ON s.id = sl.service_id
+    WHERE sl.timestamp >= datetime('now', '-24 hours')
+    GROUP BY s.id
+  \`;
+  db.all(sql, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
+    res.json(rows);
   });
 });
 
-
-// API: service ophalen
-app.get('/api/services/:id', (req, res) => {
-  db.get('SELECT * FROM services WHERE id = ?', [req.params.id], (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(row);
-  });
-});
-
-// API: service bijwerken
-app.put('/api/services/:id', (req, res) => {
-  const { name, type, url, host, port } = req.body;
-  const stmt = 'UPDATE services SET name = ?, type = ?, url = ?, host = ?, port = ? WHERE id = ?';
-  db.run(stmt, [name, type, url, host, port, req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
-  });
-});
-
-// API: service verwijderen
-app.delete('/api/services/:id', (req, res) => {
-  db.run('DELETE FROM services WHERE id = ?', [req.params.id], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
-  });
-});
-
-// Check logica
 function checkService(service, callback) {
   if (service.type === 'http') {
     axios.get(service.url, { timeout: 5000 })
@@ -107,25 +74,18 @@ function checkService(service, callback) {
   }
 }
 
-// Periodieke checks
 function performChecks() {
   db.all('SELECT * FROM services', [], (err, services) => {
-    if (err) {
-      console.error('DB read error:', err);
-      return;
-    }
+    if (err) return;
     services.forEach(service => {
       checkService(service, (status) => {
         const insert = 'INSERT INTO status_logs (service_id, status) VALUES (?, ?)';
-        db.run(insert, [service.id, status], (err) => {
-          if (err) console.error('Insert error:', err);
-        });
+        db.run(insert, [service.id, status]);
       });
     });
   });
 }
 
-// Start interval
 setInterval(performChecks, 60000);
 performChecks();
 
