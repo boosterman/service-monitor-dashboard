@@ -78,8 +78,10 @@ function performChecks() {
   db.all('SELECT * FROM services', [], (err, services) => {
     if (err) return;
     services.forEach(service => {
+      console.log(`[Monitor] Checking service: ${service.name} (${service.type})`);
       checkService(service, (status) => {
         const insert = 'INSERT INTO status_logs (service_id, status) VALUES (?, ?)';
+        console.log(`[Monitor] Status opgeslagen in DB voor ${service.name}`);
         db.run(insert, [service.id, status]);
       });
     });
