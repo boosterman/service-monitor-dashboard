@@ -5,7 +5,6 @@
   <title>Servicebeheer</title>
   <style>
     body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
-    h1 { margin-bottom: 0.5em; }
     label { display: block; margin-top: 1em; }
     input, select { width: 300px; padding: 8px; margin-top: 5px; }
     button { margin-top: 1em; padding: 10px 15px; }
@@ -15,35 +14,24 @@
   </style>
 </head>
 <body>
-  <h1>Servicebeheer</h1>
-
-  <form id="add-form">
+  <h1>Beheer Services</h1>
+  <form id="form">
     <input type="hidden" id="edit-id" />
-    <label>Naam:
-      <input type="text" id="name" required />
-    </label>
+    <label>Naam: <input type="text" id="name" required /></label>
     <label>Type:
       <select id="type">
         <option value="http">HTTP</option>
         <option value="tcp">TCP</option>
       </select>
     </label>
-    <label id="url-label">URL:
-      <input type="text" id="url" />
-    </label>
-    <label id="host-label" style="display: none;">Host:
-      <input type="text" id="host" />
-    </label>
-    <label id="port-label" style="display: none;">Port:
-      <input type="number" id="port" />
-    </label>
+    <label id="url-label">URL: <input type="text" id="url" /></label>
+    <label id="host-label" style="display:none;">Host: <input type="text" id="host" /></label>
+    <label id="port-label" style="display:none;">Port: <input type="number" id="port" /></label>
     <button type="submit">Opslaan</button>
   </form>
 
   <table>
-    <thead>
-      <tr><th>Naam</th><th>Type</th><th>Acties</th></tr>
-    </thead>
+    <thead><tr><th>Naam</th><th>Type</th><th>Acties</th></tr></thead>
     <tbody id="services-list"></tbody>
   </table>
 
@@ -53,9 +41,7 @@
     const hostLabel = document.getElementById('host-label');
     const portLabel = document.getElementById('port-label');
 
-    typeSelect.addEventListener('change', toggleFields);
-
-    function toggleFields() {
+    typeSelect.addEventListener('change', () => {
       if (typeSelect.value === 'http') {
         urlLabel.style.display = 'block';
         hostLabel.style.display = 'none';
@@ -65,7 +51,7 @@
         hostLabel.style.display = 'block';
         portLabel.style.display = 'block';
       }
-    }
+    });
 
     async function fetchServices() {
       const res = await fetch('/api/services/all');
@@ -74,60 +60,54 @@
       list.innerHTML = '';
       data.forEach(s => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td>${s.name}</td><td>${s.type}</td>
+        row.innerHTML = \`
+          <td>\${s.name}</td>
+          <td>\${s.type}</td>
           <td>
-            <span class="btn-link" onclick="editService('${s.id}')">Wijzig</span>
-            <span class="btn-link" onclick="removeService('${s.id}')">Verwijder</span>
-          </td>`;
+            <span class="btn-link" onclick="editService('\${s.id}')">Wijzig</span>
+            <span class="btn-link" onclick="deleteService('\${s.id}')">Verwijder</span>
+          </td>\`;
         list.appendChild(row);
       });
     }
 
     async function editService(id) {
       const res = await fetch('/api/services/' + id);
-      const data = await res.json();
-      document.getElementById('edit-id').value = data.id;
-      document.getElementById('name').value = data.name;
-      document.getElementById('type').value = data.type;
-      document.getElementById('url').value = data.url || '';
-      document.getElementById('host').value = data.host || '';
-      document.getElementById('port').value = data.port || '';
-      toggleFields();
+      const s = await res.json();
+      document.getElementById('edit-id').value = s.id;
+      document.getElementById('name').value = s.name;
+      document.getElementById('type').value = s.type;
+      document.getElementById('url').value = s.url || '';
+      document.getElementById('host').value = s.host || '';
+      document.getElementById('port').value = s.port || '';
+      typeSelect.dispatchEvent(new Event('change'));
     }
 
-    async function removeService(id) {
+    async function deleteService(id) {
       await fetch('/api/services/' + id, { method: 'DELETE' });
       fetchServices();
     }
 
-    document.getElementById('add-form').addEventListener('submit', async (e) => {
+    document.getElementById('form').addEventListener('submit', async e => {
       e.preventDefault();
       const id = document.getElementById('edit-id').value;
-      const name = document.getElementById('name').value;
-      const type = document.getElementById('type').value;
-      const url = document.getElementById('url').value;
-      const host = document.getElementById('host').value;
-      const port = document.getElementById('port').value;
       const body = {
-        id: name.toLowerCase().replace(/\s+/g, '-'),
-        name, type, url: url || null,
-        host: host || null,
-        port: port ? parseInt(port) : null
+        id: document.getElementById('name').value.toLowerCase().replace(/\s+/g, '-'),
+        name: document.getElementById('name').value,
+        type: document.getElementById('type').value,
+        url: document.getElementById('url').value || null,
+        host: document.getElementById('host').value || null,
+        port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null
       };
-      if (id) {
-        await fetch('/api/services/' + id, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-      } else {
-        await fetch('/api/services', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-      }
+      const method = id ? 'PUT' : 'POST';
+      const endpoint = id ? '/api/services/' + id : '/api/services';
+      await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
       e.target.reset();
+      document.getElementById('edit-id').value = '';
       fetchServices();
     });
 
