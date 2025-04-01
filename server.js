@@ -32,7 +32,7 @@ app.get('/api/services', (req, res) => {
 });
 
 app.get('/api/uptime', (req, res) => {
-  const sql = `
+  const sql = \`
     SELECT s.id, s.name,
       ROUND(
         100.0 * SUM(CASE WHEN sl.status = 'online' THEN 1 ELSE 0 END) / COUNT(sl.id), 1
@@ -42,7 +42,7 @@ app.get('/api/uptime', (req, res) => {
     JOIN status_logs sl ON s.id = sl.service_id
     WHERE sl.timestamp >= datetime('now', '-24 hours')
     GROUP BY s.id
-  `;
+  \`;
   db.all(sql, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
