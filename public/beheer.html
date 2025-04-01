@@ -54,7 +54,9 @@
     });
 
     async function fetchServices() {
+      try {
       const res = await fetch('/api/services/all');
+        if (!res.ok) throw new Error('Kan services niet laden: ' + res.status);
       const data = await res.json();
       const list = document.getElementById('services-list');
       list.innerHTML = '';
@@ -85,7 +87,11 @@
 
     async function deleteService(id) {
       await fetch('/api/services/' + id, { method: 'DELETE' });
-      fetchServices();
+      } catch (error) {
+        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout bij ophalen services:</strong> ' + error.message + '</td></tr>';
+      }
+    }
+    fetchServices();
     }
 
     document.getElementById('form').addEventListener('submit', async e => {
@@ -108,9 +114,17 @@
       });
       e.target.reset();
       document.getElementById('edit-id').value = '';
-      fetchServices();
+      } catch (error) {
+        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout bij ophalen services:</strong> ' + error.message + '</td></tr>';
+      }
+    }
+    fetchServices();
     });
 
+    } catch (error) {
+        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout bij ophalen services:</strong> ' + error.message + '</td></tr>';
+      }
+    }
     fetchServices();
   </script>
 </body>
