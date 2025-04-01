@@ -42,7 +42,7 @@ app.get('/api/uptime', (req, res) => {
     JOIN status_logs sl ON s.id = sl.service_id
     WHERE sl.timestamp >= datetime('now', '-24 hours')
     GROUP BY s.id
-  \`;
+  `;
   db.all(sql, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
