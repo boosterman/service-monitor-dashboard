@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -25,43 +24,47 @@
         <th>Type</th>
         <th>Status</th>
         <th>Laatste Check</th>
+        <th>Uptime (24u)</th>
       </tr>
     </thead>
     <tbody id="status-body">
-      <tr><td colspan="4">Laden...</td></tr>
+      <tr><td colspan="5">Laden...</td></tr>
     </tbody>
   </table>
 
   <script>
     async function fetchStatus() {
-      try {
-        const res = await fetch('/api/services');
-        const data = await res.json();
-        const tbody = document.getElementById('status-body');
-        const ts = document.getElementById('timestamp');
-        const now = new Date();
-        ts.textContent = 'Laatst bijgewerkt: ' + now.toLocaleString();
-        tbody.innerHTML = '';
+      const [res, uptimeRes] = await Promise.all([
+        fetch('/api/services'),
+        fetch('/api/uptime')
+      ]);
+      const data = await res.json();
+      const uptimeData = await uptimeRes.json();
+      const uptimeMap = Object.fromEntries(uptimeData.map(u => [u.id, u]));
 
-        if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4">Geen services gevonden.</td></tr>';
-        }
+      const tbody = document.getElementById('status-body');
+      const ts = document.getElementById('timestamp');
+      const now = new Date();
+      ts.textContent = 'Laatst bijgewerkt: ' + now.toLocaleString();
+      tbody.innerHTML = '';
 
-        data.forEach(s => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${s.name}</td>
-            <td>${s.type}</td>
-            <td class="${s.status || 'unknown'}">${s.status || 'Onbekend'}</td>
-            <td>${s.timestamp ? new Date(s.timestamp + 'Z').toLocaleString() : 'Nog niet gecontroleerd'}</td>
-
-          `;
-          tbody.appendChild(row);
-        });
-      } catch (e) {
-        console.error('Fout bij ophalen services:', e);
-        document.getElementById('status-body').innerHTML = '<tr><td colspan="4">Fout bij ophalen van data.</td></tr>';
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">Geen services gevonden.</td></tr>';
       }
+
+      data.forEach(s => {
+        const uptime = uptimeMap[s.id];
+        const uptimeText = uptime ? uptime.uptime + '% (' + uptime.checks + ' checks)' : 'Geen data';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${s.name}</td>
+          <td>${s.type}</td>
+          <td class="${s.status || 'unknown'}">${s.status || 'Onbekend'}</td>
+          <td>${s.timestamp ? new Date(s.timestamp + 'Z').toLocaleString() : 'Nog niet gecontroleerd'}</td>
+          <td>${uptimeText}</td>
+        `;
+        tbody.appendChild(row);
+      });
     }
 
     fetchStatus();
