@@ -35,6 +35,7 @@
     <tbody id="services-list"></tbody>
   </table>
 
+  
   <script>
     const typeSelect = document.getElementById('type');
     const urlLabel = document.getElementById('url-label');
@@ -55,22 +56,25 @@
 
     async function fetchServices() {
       try {
-      const res = await fetch('/api/services/all');
+        const res = await fetch('/api/services/all');
         if (!res.ok) throw new Error('Kan services niet laden: ' + res.status);
-      const data = await res.json();
-      const list = document.getElementById('services-list');
-      list.innerHTML = '';
-      data.forEach(s => {
-        const row = document.createElement('tr');
-        row.innerHTML = \`
-          <td>\${s.name}</td>
-          <td>\${s.type}</td>
-          <td>
-            <span class="btn-link" onclick="editService('\${s.id}')">Wijzig</span>
-            <span class="btn-link" onclick="deleteService('\${s.id}')">Verwijder</span>
-          </td>\`;
-        list.appendChild(row);
-      });
+        const data = await res.json();
+        const list = document.getElementById('services-list');
+        list.innerHTML = '';
+        data.forEach(s => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${s.name}</td>
+            <td>${s.type}</td>
+            <td>
+              <span class="btn-link" onclick="editService('${s.id}')">Wijzig</span>
+              <span class="btn-link" onclick="deleteService('${s.id}')">Verwijder</span>
+            </td>`;
+          list.appendChild(row);
+        });
+      } catch (error) {
+        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout:</strong> ' + error.message + '</td></tr>';
+      }
     }
 
     async function editService(id) {
@@ -86,46 +90,43 @@
     }
 
     async function deleteService(id) {
-      await fetch('/api/services/' + id, { method: 'DELETE' });
+      try {
+        await fetch('/api/services/' + id, { method: 'DELETE' });
+        fetchServices();
       } catch (error) {
-        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout bij ophalen services:</strong> ' + error.message + '</td></tr>';
+        alert('Fout bij verwijderen: ' + error.message);
       }
-    }
-    fetchServices();
     }
 
     document.getElementById('form').addEventListener('submit', async e => {
       e.preventDefault();
-      const id = document.getElementById('edit-id').value;
-      const body = {
-        id: document.getElementById('name').value.toLowerCase().replace(/\s+/g, '-'),
-        name: document.getElementById('name').value,
-        type: document.getElementById('type').value,
-        url: document.getElementById('url').value || null,
-        host: document.getElementById('host').value || null,
-        port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null
-      };
-      const method = id ? 'PUT' : 'POST';
-      const endpoint = id ? '/api/services/' + id : '/api/services';
-      await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      e.target.reset();
-      document.getElementById('edit-id').value = '';
+      try {
+        const id = document.getElementById('edit-id').value;
+        const body = {
+          id: document.getElementById('name').value.toLowerCase().replace(/\s+/g, '-'),
+          name: document.getElementById('name').value,
+          type: document.getElementById('type').value,
+          url: document.getElementById('url').value || null,
+          host: document.getElementById('host').value || null,
+          port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null
+        };
+        const method = id ? 'PUT' : 'POST';
+        const endpoint = id ? '/api/services/' + id : '/api/services';
+        await fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        e.target.reset();
+        document.getElementById('edit-id').value = '';
+        fetchServices();
       } catch (error) {
-        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout bij ophalen services:</strong> ' + error.message + '</td></tr>';
+        alert('Fout bij opslaan: ' + error.message);
       }
-    }
-    fetchServices();
     });
 
-    } catch (error) {
-        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout bij ophalen services:</strong> ' + error.message + '</td></tr>';
-      }
-    }
     fetchServices();
   </script>
+
 </body>
 </html>
