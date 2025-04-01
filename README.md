@@ -1,72 +1,53 @@
-# Service Monitor Dashboard (met beheer en database)
+# Service Monitor Dashboard
 
-Een intuïtief en uitbreidbaar monitoringdashboard waarmee je eenvoudig de status van externe services (HTTP of TCP) bewaakt. Inclusief database-opslag, automatische updates én een beheerpagina.
+Een visueel dashboard om externe services (zoals websites en servers) te monitoren. Ondersteunt HTTP- en TCP-checks, automatische statusopslag en een beheerpagina voor het eenvoudig toevoegen, wijzigen en verwijderen van services.
 
 ---
 
 ## ✅ Functionaliteiten
 
-- Live statuscontrole via achtergrond-checks (elke minuut)
-- Types: `http` en `tcp`
-- Opslag van statussen in `monitor.db` (SQLite)
-- Frontend dashboard toont laatste bekende status
-- Beheerpagina voor:
-  - Toevoegen
-  - Verwijderen
-  - ✏️ Wijzigen van services
-- Automatische verversing frontend elke minuut
-- Tijdstip “Laatst bijgewerkt” zichtbaar in dashboard
-- Volledig zonder programmeerkennis te gebruiken
+- HTTP en TCP monitoring
+- Dashboard met live status en uptime over laatste 24 uur
+- Backend-API met SQLite opslag
+- Automatisch elke minuut controleren
+- Beheerpagina voor services (toevoegen, wijzigen, verwijderen)
+- Gebruiksvriendelijk zonder programmeerkennis
 
 ---
 
-## 📦 Installatie lokaal (voor testen)
+## 📦 Installatie lokaal
 
 ```bash
 npm install
 node server.js
 ```
 
-Bezoek:
-- [http://localhost:3000](http://localhost:3000) → Dashboard
-- [http://localhost:3000/beheer.html](http://localhost:3000/beheer.html) → Beheerpagina
+Toegang tot:
+- Dashboard: [http://localhost:3000](http://localhost:3000)
+- Beheerpagina: [http://localhost:3000/beheer.html](http://localhost:3000/beheer.html)
 
 ---
 
 ## ☁️ Deployen op Render
 
-1. Zet dit project op GitHub
-2. Maak een nieuwe Web Service aan op [Render.com](https://render.com)
+1. Upload dit project naar GitHub
+2. Maak een nieuwe Web Service op [https://render.com](https://render.com)
 3. Instellingen:
 
-| Instelling        | Waarde             |
+| Instelling        | Waarde              |
 |-------------------|---------------------|
-| Start Command     | `node server.js`    |
-| Build Command     | *(leeg laten)*      |
+| Start command     | `node server.js`    |
+| Build command     | *(leeg laten)*      |
 | Node.js versie    | Laat Render kiezen  |
 
-4. Upload ook `monitor.db`, `package.json`, `public/`, enz.
-5. Klik op **Manual Deploy**
+---
+
+## 🔒 Let op
+
+- ICMP ping wordt niet ondersteund op Render (alleen HTTP en TCP)
+- Tijdstempels zijn UTC, frontend converteert automatisch naar lokale tijd
+- Databasebestand `monitor.db` moet aanwezig zijn voor correcte werking
 
 ---
 
-## ➕ Services beheren
-
-Gebruik de beheerpagina `/beheer.html` om services:
-- Toe te voegen
-- Te wijzigen
-- Te verwijderen
-
-Alles gebeurt direct in de SQLite-database. Geen Postman of curl nodig.
-
----
-
-## ⚠️ Let op
-
-- `monitor.db` moet aanwezig zijn in root van het project
-- Render ondersteunt geen ICMP-ping (alleen HTTP/TCP werken)
-- Tijdzone wordt automatisch aangepast in de frontend
-
----
-
-Gemaakt door Bastiaan + GPT. Klaar voor meldingen, rapportage of grafieken? Open de volgende fase!
+Gemaakt met zorg — en nu compleet. Laat het dashboard voor je werken.
