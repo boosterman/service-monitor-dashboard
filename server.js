@@ -99,4 +99,40 @@ app.get('/api/services/all', (req, res) => {
 });
 
 
+// API: service ophalen
+app.get('/api/services/:id', (req, res) => {
+  db.get('SELECT * FROM services WHERE id = ?', [req.params.id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(row);
+  });
+});
+
+// API: service toevoegen
+app.post('/api/services', (req, res) => {
+  const { id, name, type, url, host, port } = req.body;
+  const stmt = `INSERT INTO services (id, name, type, url, host, port) VALUES (?, ?, ?, ?, ?, ?)`;
+  db.run(stmt, [id, name, type, url, host, port], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// API: service bijwerken
+app.put('/api/services/:id', (req, res) => {
+  const { name, type, url, host, port } = req.body;
+  const stmt = 'UPDATE services SET name = ?, type = ?, url = ?, host = ?, port = ? WHERE id = ?';
+  db.run(stmt, [name, type, url, host, port, req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// API: service verwijderen
+app.delete('/api/services/:id', (req, res) => {
+  db.run('DELETE FROM services WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
