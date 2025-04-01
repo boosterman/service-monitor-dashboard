@@ -89,4 +89,14 @@ function performChecks() {
 setInterval(performChecks, 60000);
 performChecks();
 
+
+// API: alle services (voor beheerpagina)
+app.get('/api/services/all', (req, res) => {
+  db.all('SELECT id, name, type FROM services ORDER BY name', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
