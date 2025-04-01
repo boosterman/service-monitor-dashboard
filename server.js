@@ -32,7 +32,7 @@ app.get('/api/services', (req, res) => {
 });
 
 app.get('/api/uptime', (req, res) => {
-  const sql = \`
+  const sql = `
     SELECT s.id, s.name,
       ROUND(
         100.0 * SUM(CASE WHEN sl.status = 'online' THEN 1 ELSE 0 END) / COUNT(sl.id), 1
