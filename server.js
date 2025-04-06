@@ -98,4 +98,37 @@ app.get('/api/services/all', (req, res) => {
 });
 
 
+
+app.get('/api/services/:id', (req, res) => {
+  const id = req.params.id;
+  db.get('SELECT * FROM services WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Service niet gevonden' });
+    res.json(row);
+  });
+});
+
+app.put('/api/services/:id', (req, res) => {
+  const id = req.params.id;
+  const { name, type, url, host, port, interval_minutes } = req.body;
+  const sql = \`
+    UPDATE services
+    SET name = ?, type = ?, url = ?, host = ?, port = ?, interval_minutes = ?
+    WHERE id = ?
+  \`;
+  db.run(sql, [name, type, url, host, port, interval_minutes, id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ updated: this.changes });
+  });
+});
+
+app.delete('/api/services/:id', (req, res) => {
+  const id = req.params.id;
+  db.run('DELETE FROM services WHERE id = ?', [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ deleted: this.changes });
+  });
+});
+
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
