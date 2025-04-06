@@ -132,14 +132,24 @@ app.delete('/api/services/:id', (req, res) => {
 
 
 
+
 app.post('/api/services', (req, res) => {
   const { id, name, type, url, host, port, interval_minutes } = req.body;
+
+  if (!id || !name || !type || (!url && (!host || !port))) {
+    return res.status(400).json({ error: 'Vereiste velden ontbreken' });
+  }
+
   const sql = `
     INSERT INTO services (id, name, type, url, host, port, interval_minutes)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
-  db.run(sql, [id, name, type, url, host, port, interval_minutes], function (err) {
+  db.run(sql, [id, name, type, url, host, port, interval_minutes || 1], function (err) {
     if (err) return res.status(500).json({ error: err.message });
+    res.json({ created: id });
+  });
+});
+
     res.json({ created: this.lastID });
   });
 });
