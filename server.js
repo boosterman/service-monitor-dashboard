@@ -131,4 +131,18 @@ app.delete('/api/services/:id', (req, res) => {
 });
 
 
+
+app.post('/api/services', (req, res) => {
+  const { id, name, type, url, host, port, interval_minutes } = req.body;
+  const sql = `
+    INSERT INTO services (id, name, type, url, host, port, interval_minutes)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  db.run(sql, [id, name, type, url, host, port, interval_minutes], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ created: this.lastID });
+  });
+});
+
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
