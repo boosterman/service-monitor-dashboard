@@ -111,11 +111,11 @@ app.get('/api/services/:id', (req, res) => {
 app.put('/api/services/:id', (req, res) => {
   const id = req.params.id;
   const { name, type, url, host, port, interval_minutes } = req.body;
-  const sql = \`
+  const sql = `
     UPDATE services
     SET name = ?, type = ?, url = ?, host = ?, port = ?, interval_minutes = ?
     WHERE id = ?
-  \`;
+  `;
   db.run(sql, [name, type, url, host, port, interval_minutes, id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ updated: this.changes });
