@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -27,15 +28,15 @@
     <label id="url-label">URL: <input type="text" id="url" /></label>
     <label id="host-label" style="display:none;">Host: <input type="text" id="host" /></label>
     <label id="port-label" style="display:none;">Port: <input type="number" id="port" /></label>
+    <label>Interval (minuten): <input type="number" id="interval" min="1" value="1" /></label>
     <button type="submit">Opslaan</button>
   </form>
 
   <table>
-    <thead><tr><th>Naam</th><th>Type</th><th>Acties</th></tr></thead>
+    <thead><tr><th>Naam</th><th>Type</th><th>Interval</th><th>Acties</th></tr></thead>
     <tbody id="services-list"></tbody>
   </table>
 
-  
   <script>
     const typeSelect = document.getElementById('type');
     const urlLabel = document.getElementById('url-label');
@@ -66,14 +67,16 @@
           row.innerHTML = `
             <td>${s.name}</td>
             <td>${s.type}</td>
+            <td>${s.interval_minutes || 1}</td>
             <td>
               <span class="btn-link" onclick="editService('${s.id}')">Wijzig</span>
               <span class="btn-link" onclick="deleteService('${s.id}')">Verwijder</span>
+              <span class="btn-link" onclick="checkNow('${s.id}')">Check nu</span>
             </td>`;
           list.appendChild(row);
         });
       } catch (error) {
-        document.getElementById('services-list').innerHTML = '<tr><td colspan="3"><strong>Fout:</strong> ' + error.message + '</td></tr>';
+        document.getElementById('services-list').innerHTML = '<tr><td colspan="4"><strong>Fout:</strong> ' + error.message + '</td></tr>';
       }
     }
 
@@ -86,6 +89,7 @@
       document.getElementById('url').value = s.url || '';
       document.getElementById('host').value = s.host || '';
       document.getElementById('port').value = s.port || '';
+      document.getElementById('interval').value = s.interval_minutes || 1;
       typeSelect.dispatchEvent(new Event('change'));
     }
 
@@ -95,6 +99,16 @@
         fetchServices();
       } catch (error) {
         alert('Fout bij verwijderen: ' + error.message);
+      }
+    }
+
+    async function checkNow(id) {
+      try {
+        const res = await fetch('/api/services/' + id + '/check-now', { method: 'POST' });
+        const data = await res.json();
+        alert('Status: ' + data.status);
+      } catch (error) {
+        alert('Check mislukt: ' + error.message);
       }
     }
 
@@ -108,7 +122,8 @@
           type: document.getElementById('type').value,
           url: document.getElementById('url').value || null,
           host: document.getElementById('host').value || null,
-          port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null
+          port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null,
+          interval_minutes: parseInt(document.getElementById('interval').value) || 1
         };
         const method = id ? 'PUT' : 'POST';
         const endpoint = id ? '/api/services/' + id : '/api/services';
