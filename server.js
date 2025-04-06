@@ -1,9 +1,9 @@
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const sqlite3 = require('sqlite3').verbose();
-const { exec } = require('child_process');
 const net = require('net');
 const axios = require('axios');
 
@@ -13,6 +13,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 const db = new sqlite3.Database('./monitor.db');
+
+const intervals = {}; // service-id -> interval reference
 
 app.get('/api/services', (req, res) => {
   const query = `
@@ -42,53 +44,12 @@ app.get('/api/uptime', (req, res) => {
     JOIN status_logs sl ON s.id = sl.service_id
     WHERE sl.timestamp >= datetime('now', '-24 hours')
     GROUP BY s.id
- `;
+  `;
   db.all(sql, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
 });
-
-function checkService(service, callback) {
-  if (service.type === 'http') {
-    axios.get(service.url, { timeout: 5000 })
-      .then(() => callback('online'))
-      .catch(() => callback('offline'));
-  } else if (service.type === 'tcp') {
-    const socket = new net.Socket();
-    socket.setTimeout(5000);
-    socket.on('connect', () => {
-      socket.destroy();
-      callback('online');
-    });
-    socket.on('error', () => {
-      callback('offline');
-    });
-    socket.on('timeout', () => {
-      socket.destroy();
-      callback('offline');
-    });
-    socket.connect(service.port, service.host);
-  } else {
-    callback('unknown');
-  }
-}
-
-function performChecks() {
-  db.all('SELECT * FROM services', [], (err, services) => {
-    if (err) return;
-    services.forEach(service => {
-      checkService(service, (status) => {
-        const insert = 'INSERT INTO status_logs (service_id, status) VALUES (?, ?)';
-        db.run(insert, [service.id, status]);
-      });
-    });
-  });
-}
-
-setInterval(performChecks, 60000);
-performChecks();
-
 
 app.get('/api/services/all', (req, res) => {
   db.all('SELECT * FROM services', [], (err, rows) => {
@@ -97,14 +58,40 @@ app.get('/api/services/all', (req, res) => {
   });
 });
 
-
-
 app.get('/api/services/:id', (req, res) => {
   const id = req.params.id;
   db.get('SELECT * FROM services WHERE id = ?', [id], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: 'Service niet gevonden' });
     res.json(row);
+  });
+});
+
+app.post('/api/services/:id/check-now', (req, res) => {
+  const id = req.params.id;
+  db.get('SELECT * FROM services WHERE id = ?', [id], (err, service) => {
+    if (err || !service) return res.status(404).json({ error: 'Service niet gevonden' });
+    checkService(service, (status) => {
+      db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [id, status]);
+      res.json({ status });
+    });
+  });
+});
+
+app.post('/api/services', (req, res) => {
+  const { id, name, type, url, host, port, interval_minutes } = req.body;
+
+  if (!id || !name || !type || (!url && (!host || !port))) {
+    return res.status(400).json({ error: 'Vereiste velden ontbreken' });
+  }
+
+  const sql = `
+    INSERT INTO services (id, name, type, url, host, port, interval_minutes)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  db.run(sql, [id, name, type, url, host, port, interval_minutes || 1], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ created: id });
   });
 });
 
@@ -130,29 +117,45 @@ app.delete('/api/services/:id', (req, res) => {
   });
 });
 
-
-
-
-app.post('/api/services', (req, res) => {
-  const { id, name, type, url, host, port, interval_minutes } = req.body;
-
-  if (!id || !name || !type || (!url && (!host || !port))) {
-    return res.status(400).json({ error: 'Vereiste velden ontbreken' });
+function checkService(service, callback) {
+  if (service.type === 'http') {
+    axios.get(service.url, { timeout: 5000 })
+      .then(() => callback('online'))
+      .catch(() => callback('offline'));
+  } else if (service.type === 'tcp') {
+    const socket = new net.Socket();
+    socket.setTimeout(5000);
+    socket.on('connect', () => {
+      socket.destroy();
+      callback('online');
+    });
+    socket.on('error', () => callback('offline'));
+    socket.on('timeout', () => {
+      socket.destroy();
+      callback('offline');
+    });
+    socket.connect(service.port, service.host);
+  } else {
+    callback('unknown');
   }
+}
 
-  const sql = `
-    INSERT INTO services (id, name, type, url, host, port, interval_minutes)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
-  db.run(sql, [id, name, type, url, host, port, interval_minutes || 1], function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ created: id });
+function scheduleChecks() {
+  db.all('SELECT * FROM services', [], (err, services) => {
+    if (err) return;
+    services.forEach(service => {
+      const interval = (service.interval_minutes || 1) * 60000;
+      if (intervals[service.id]) clearInterval(intervals[service.id]);
+      intervals[service.id] = setInterval(() => {
+        checkService(service, (status) => {
+          db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [service.id, status]);
+        });
+      }, interval);
+    });
   });
-});
+}
 
-    res.json({ created: this.lastID });
-  });
-});
-
+scheduleChecks();
+setInterval(scheduleChecks, 10 * 60000); // herlaad configuratie elke 10 minuten
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
