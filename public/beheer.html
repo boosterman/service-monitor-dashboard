@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -116,18 +115,7 @@
       e.preventDefault();
       try {
         const editId = document.getElementById('edit-id').value;
-      const body = {
-        name: document.getElementById('name').value,
-        type: document.getElementById('type').value,
-        url: document.getElementById('url').value || null,
-        host: document.getElementById('host').value || null,
-        port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null,
-        interval_minutes: parseInt(document.getElementById('interval').value) || 1
-      };
-      const method = editId ? 'PUT' : 'POST';
-      const endpoint = editId ? '/api/services/' + editId : '/api/services';
-      if (!editId) delete body.id;
-          id: document.getElementById('name').value.toLowerCase().replace(/\s+/g, '-'),
+        const body = {
           name: document.getElementById('name').value,
           type: document.getElementById('type').value,
           url: document.getElementById('url').value || null,
@@ -135,8 +123,8 @@
           port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null,
           interval_minutes: parseInt(document.getElementById('interval').value) || 1
         };
-        const method = id ? 'PUT' : 'POST';
-        const endpoint = id ? '/api/services/' + id : '/api/services';
+        const method = editId ? 'PUT' : 'POST';
+        const endpoint = editId ? '/api/services/' + editId : '/api/services';
         await fetch(endpoint, {
           method,
           headers: { 'Content-Type': 'application/json' },
@@ -152,6 +140,5 @@
 
     fetchServices();
   </script>
-
 </body>
 </html>
