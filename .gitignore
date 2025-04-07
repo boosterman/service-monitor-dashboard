@@ -1,4 +1,11 @@
-node_modules
+# Node.js
+node_modules/
 .env
-.DS_Store
+
+# Log en databasebestanden
+monitor.db
 *.log
+
+# OS-specifiek
+.DS_Store
+Thumbs.db

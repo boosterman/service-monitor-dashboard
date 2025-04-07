@@ -1,62 +1,53 @@
 # Service Monitor Dashboard
 
-Een visueel dashboard om externe services (zoals websites en servers) te monitoren. Ondersteunt HTTP- en TCP-checks, automatische statusopslag en een beheerpagina voor het eenvoudig toevoegen, wijzigen en verwijderen van services.
+A simple and extensible dashboard to monitor the status and uptime of external services (HTTP and TCP). Designed to be user-friendly and require no programming experience.
 
 ---
 
-## ✅ Functionaliteiten
+## 🔧 Functionality
 
-- HTTP en TCP monitoring
-- Dashboard met live status en uptime over laatste 24 uur
-- Backend-API met SQLite opslag
-- Automatisch elke minuut controleren
-- Beheerpagina voor services (toevoegen, wijzigen, verwijderen)
-- Gebruiksvriendelijk zonder programmeerkennis
+### 🧩 Features
 
----
+- A **dashboard** (`index.html`) that shows the status and uptime of all registered services
+- A **management page** (`beheer.html`) to add, update, and delete services
+- Support for both `HTTP` (via URL) and `TCP` (via host and port) checks
+- Automatic **uptime calculation** for the last 24 hours
+- Background checking every minute — fully automated
+- Simple web interface — no technical knowledge required
 
-## 📦 Installatie lokaal
+### 🖥 Technical Overview
 
-```bash
-npm install
-node server.js
-```
+- Built with **Node.js** and **Express**
+- Uses a **SQLite** database (`monitor.db`) to store service information and status logs
+- Frontend communicates with backend via **REST API**:
+  - `GET /api/services` → current status overview
+  - `GET /api/uptime` → uptime percentages (last 24h)
+  - `POST / PUT / DELETE /api/services` → manage services
+- Periodic checks implemented using:
+  - `axios.get(url)` for HTTP
+  - TCP socket connection for TCP
+- Results are stored in the `status_logs` table
+- Statuses are visualized with color indicators (green = online, red = offline, orange = unknown)
 
-Toegang tot:
-- Dashboard: [http://localhost:3000](http://localhost:3000)
-- Beheerpagina: [http://localhost:3000/beheer.html](http://localhost:3000/beheer.html)
+### 📂 File Structure
 
----
+| File            | Purpose                                      |
+|-----------------|----------------------------------------------|
+| `server.js`     | Node.js backend and REST API                 |
+| `index.html`    | Live dashboard interface                     |
+| `beheer.html`   | Web interface for managing services          |
+| `monitor.db`    | SQLite database with services and logs       |
+| `package.json`  | Project config and dependencies              |
+| `README.md`     | Project documentation                        |
 
-## ☁️ Deployen op Render
+### 📌 Project Setup
 
-1. Upload dit project naar GitHub
-2. Maak een nieuwe Web Service op [https://render.com](https://render.com)
-3. Instellingen:
-
-| Instelling        | Waarde              |
-|-------------------|---------------------|
-| Start command     | `node server.js`    |
-| Build command     | *(leeg laten)*      |
-| Node.js versie    | Laat Render kiezen  |
-
----
-
-## 🔒 Let op
-
-- ICMP ping wordt niet ondersteund op Render (alleen HTTP en TCP)
-- Tijdstempels zijn UTC, frontend converteert automatisch naar lokale tijd
-- Databasebestand `monitor.db` moet aanwezig zijn voor correcte werking
+- Run the server with `node server.js`
+- The server automatically hosts files in the `public/` directory (if used)
+- Services will begin monitoring immediately based on the configured interval
 
 ---
 
-Gemaakt met zorg — en nu compleet. Laat het dashboard voor je werken.
----
+## 📄 License
 
-## 🛠 Bugfix (toevoegen services)
-
-Er zat een probleem in de beheerpagina waardoor het toevoegen van nieuwe services niet werkte. Dit is nu opgelost door:
-- De backend automatisch een ID te laten genereren als deze ontbreekt
-- De frontend geen `id` meer mee te laten sturen bij nieuwe services
-
-Deze fix is inbegrepen in de `service-monitor-fix.zip`.
+This project is licensed under the [MIT License](LICENSE) © 2025 Bastiaan Oosterman.
