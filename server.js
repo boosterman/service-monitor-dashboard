@@ -1,4 +1,3 @@
-
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -79,7 +78,8 @@ app.post('/api/services/:id/check-now', (req, res) => {
 });
 
 app.post('/api/services', (req, res) => {
-  const { id, name, type, url, host, port, interval_minutes } = req.body;
+  let { id, name, type, url, host, port, interval_minutes } = req.body;
+  id = id || name.toLowerCase().replace(/\s+/g, '-');
 
   if (!id || !name || !type || (!url && (!host || !port))) {
     return res.status(400).json({ error: 'Vereiste velden ontbreken' });
@@ -156,6 +156,6 @@ function scheduleChecks() {
 }
 
 scheduleChecks();
-setInterval(scheduleChecks, 10 * 60000); // herlaad configuratie elke 10 minuten
+setInterval(scheduleChecks, 10 * 60000);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
