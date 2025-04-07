@@ -14,10 +14,10 @@
   </style>
 </head>
 <body>
-  <h1>Beheer Services</h1>
+  <h1>Manage Services</h1>
   <form id="form">
     <input type="hidden" id="edit-id" />
-    <label>Naam: <input type="text" id="name" required /></label>
+    <label>Name: <input type="text" id="name" required /></label>
     <label>Type:
       <select id="type">
         <option value="http">HTTP</option>
@@ -27,12 +27,12 @@
     <label id="url-label">URL: <input type="text" id="url" /></label>
     <label id="host-label" style="display:none;">Host: <input type="text" id="host" /></label>
     <label id="port-label" style="display:none;">Port: <input type="number" id="port" /></label>
-    <label>Interval (minuten): <input type="number" id="interval" min="1" value="1" /></label>
-    <button type="submit">Opslaan</button>
+    <label>Interval (minutes): <input type="number" id="interval" min="1" value="1" /></label>
+    <button type="submit">Save</button>
   </form>
 
   <table>
-    <thead><tr><th>Naam</th><th>Type</th><th>Interval</th><th>Acties</th></tr></thead>
+    <thead><tr><th>Name</th><th>Type</th><th>Interval</th><th>Actions</th></tr></thead>
     <tbody id="services-list"></tbody>
   </table>
 
@@ -68,14 +68,14 @@
             <td>${s.type}</td>
             <td>${s.interval_minutes || 1}</td>
             <td>
-              <span class="btn-link" onclick="editService('${s.id}')">Wijzig</span>
-              <span class="btn-link" onclick="deleteService('${s.id}')">Verwijder</span>
-              <span class="btn-link" onclick="checkNow('${s.id}')">Check nu</span>
+              <span class="btn-link" onclick="editService('${s.id}')">Edit</span>
+              <span class="btn-link" onclick="deleteService('${s.id}')">Delete</span>
+              <span class="btn-link" onclick="checkNow('${s.id}')">Check now</span>
             </td>`;
           list.appendChild(row);
         });
       } catch (error) {
-        document.getElementById('services-list').innerHTML = '<tr><td colspan="4"><strong>Fout:</strong> ' + error.message + '</td></tr>';
+        document.getElementById('services-list').innerHTML = '<tr><td colspan="4"><strong>Error:</strong> ' + error.message + '</td></tr>';
       }
     }
 
@@ -97,7 +97,7 @@
         await fetch('/api/services/' + id, { method: 'DELETE' });
         fetchServices();
       } catch (error) {
-        alert('Fout bij verwijderen: ' + error.message);
+        alert('Error deleting service: ' + error.message);
       }
     }
 
@@ -107,7 +107,7 @@
         const data = await res.json();
         alert('Status: ' + data.status);
       } catch (error) {
-        alert('Check mislukt: ' + error.message);
+        alert('Check failed: ' + error.message);
       }
     }
 
@@ -134,7 +134,7 @@
         document.getElementById('edit-id').value = '';
         fetchServices();
       } catch (error) {
-        alert('Fout bij opslaan: ' + error.message);
+        alert('Error saving service: ' + error.message);
       }
     });
 
