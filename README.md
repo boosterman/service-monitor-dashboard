@@ -51,3 +51,12 @@ Toegang tot:
 ---
 
 Gemaakt met zorg — en nu compleet. Laat het dashboard voor je werken.
+---
+
+## 🛠 Bugfix (toevoegen services)
+
+Er zat een probleem in de beheerpagina waardoor het toevoegen van nieuwe services niet werkte. Dit is nu opgelost door:
+- De backend automatisch een ID te laten genereren als deze ontbreekt
+- De frontend geen `id` meer mee te laten sturen bij nieuwe services
+
+Deze fix is inbegrepen in de `service-monitor-fix.zip`.
