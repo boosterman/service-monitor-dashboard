@@ -115,8 +115,18 @@
     document.getElementById('form').addEventListener('submit', async e => {
       e.preventDefault();
       try {
-        const id = document.getElementById('edit-id').value;
-        const body = {
+        const editId = document.getElementById('edit-id').value;
+      const body = {
+        name: document.getElementById('name').value,
+        type: document.getElementById('type').value,
+        url: document.getElementById('url').value || null,
+        host: document.getElementById('host').value || null,
+        port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null,
+        interval_minutes: parseInt(document.getElementById('interval').value) || 1
+      };
+      const method = editId ? 'PUT' : 'POST';
+      const endpoint = editId ? '/api/services/' + editId : '/api/services';
+      if (!editId) delete body.id;
           id: document.getElementById('name').value.toLowerCase().replace(/\s+/g, '-'),
           name: document.getElementById('name').value,
           type: document.getElementById('type').value,
