@@ -2,9 +2,9 @@
 <!DOCTYPE html>
 <html lang="nl" class="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Status Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servicebeheer</title>
   <script>
     if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.classList.remove('light');
@@ -15,13 +15,19 @@
     body {
       font-family: sans-serif;
       margin: 0;
-      padding: 1rem;
+      padding: 1.5rem;
       transition: background 0.3s, color 0.3s;
     }
-    .light body { background: #f4f4f4; color: #000; }
+    .light body { background: #f9f9f9; color: #000; }
     .dark body { background: #121212; color: #f0f0f0; }
 
-    .header { display: flex; justify-content: space-between; align-items: center; }
+    h1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
     .theme-toggle {
       cursor: pointer;
       background: none;
@@ -31,96 +37,125 @@
     }
     .dark .theme-toggle { border-color: #666; }
 
-    .timestamp {
-      font-size: 0.9em;
-      opacity: 0.8;
-      margin-top: 0.5rem;
-    }
-
-    .dashboard {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    @media (min-width: 600px) {
-      .dashboard {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      }
-    }
-
-    .card {
+    form {
+      max-width: 600px;
+      margin-bottom: 2rem;
+      background: #fff;
       padding: 1rem;
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      cursor: pointer;
     }
-    .card.online { background: #e6ffed; color: #067d34; }
-    .card.offline { background: #ffe6e6; color: #b10000; }
-    .card.unknown { background: #f0f0f0; color: #666; }
-    .dark .card.online { background: #1c3b26; color: #b9f2c4; }
-    .dark .card.offline { background: #3d1e1e; color: #ffc4c4; }
-    .dark .card.unknown { background: #2b2b2b; color: #aaa; }
-
-    .meta {
-      font-size: 0.85rem;
-      opacity: 0.8;
-    }
-
-    /* Modal styles */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-    }
-    .modal-content {
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      max-width: 400px;
-      width: 90%;
-    }
-    .dark .modal-content {
+    .dark form {
       background: #2b2b2b;
-      color: white;
     }
-    .modal-close {
-      float: right;
-      cursor: pointer;
-      font-weight: bold;
+
+    label {
+      display: block;
+      margin-top: 1em;
     }
-    .button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
+    input, select {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 10px 15px;
       border: none;
       background: #007bff;
       color: white;
       border-radius: 4px;
       cursor: pointer;
     }
-  </style>
+
+    .card-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 600px) {
+      .card-container {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+    }
+
+    .card {
+      padding: 1rem;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .dark .card {
+      background: #2a2a2a;
+    }
+
+    .actions {
+      margin-top: 0.8rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn-link {
+      padding: 6px 12px;
+      background: #eee;
+      color: #000;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .dark .btn-link {
+      background: #444;
+      color: #fff;
+    }
+    .btn-link:hover {
+      opacity: 0.8;
+    }
+  
+    .nav-link {
+      margin-right: auto;
+      margin-left: 0;
+      background: #eee;
+      color: #000;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .dark .nav-link {
+      background: #444;
+      color: #fff;
+    }
+
+</style>
 </head>
 <body>
-  <div class="header">
-    <h1>Status van Services</h1>
+  <h1><a href="/beheer.html" class="nav-link">Ga naar beheerpagina</a>
+    Servicebeheer
     <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
-  </div>
-  <div class="timestamp" id="timestamp">Laatst bijgewerkt: -</div>
-  <div class="dashboard" id="dashboard"></div>
+  </h1>
 
-  <div class="modal" id="modal">
-    <div class="modal-content" id="modal-content">
-      <span class="modal-close" onclick="closeModal()">✖</span>
-      <div id="modal-body">...</div>
-    </div>
-  </div>
+  <form id="form">
+    <input type="hidden" id="edit-id" />
+    <label>Name: <input type="text" id="name" required /></label>
+    <label>Type:
+      <select id="type">
+        <option value="http">HTTP</option>
+        <option value="tcp">TCP</option>
+      </select>
+    </label>
+    <label id="url-label">URL: <input type="text" id="url" /></label>
+    <label id="host-label" style="display:none;">Host: <input type="text" id="host" /></label>
+    <label id="port-label" style="display:none;">Port: <input type="number" id="port" /></label>
+    <label>Interval (minutes): <input type="number" id="interval" min="1" value="1" /></label>
+    <button type="submit">Opslaan</button>
+  </form>
+
+  <div class="card-container" id="services-list"></div>
 
   <script>
     function toggleTheme() {
@@ -131,74 +166,107 @@
       localStorage.setItem('theme', isDark ? 'light' : 'dark');
     }
 
-    function closeModal() {
-      document.getElementById('modal').style.display = 'none';
-    }
+    const typeSelect = document.getElementById('type');
+    const urlLabel = document.getElementById('url-label');
+    const hostLabel = document.getElementById('host-label');
+    const portLabel = document.getElementById('port-label');
 
-    async function fetchStatus() {
-      const [res, uptimeRes] = await Promise.all([
-        fetch('/api/services'),
-        fetch('/api/uptime')
-      ]);
-      const data = await res.json();
-      const uptimeData = await uptimeRes.json();
-      const uptimeMap = Object.fromEntries(uptimeData.map(u => [u.id, u]));
-
-      const dashboard = document.getElementById('dashboard');
-      const ts = document.getElementById('timestamp');
-      const now = new Date();
-      ts.textContent = 'Laatst bijgewerkt: ' + now.toLocaleString();
-      dashboard.innerHTML = '';
-
-      if (data.length === 0) {
-        dashboard.innerHTML = '<p>Geen services gevonden.</p>';
+    typeSelect.addEventListener('change', () => {
+      if (typeSelect.value === 'http') {
+        urlLabel.style.display = 'block';
+        hostLabel.style.display = 'none';
+        portLabel.style.display = 'none';
+      } else {
+        urlLabel.style.display = 'none';
+        hostLabel.style.display = 'block';
+        portLabel.style.display = 'block';
       }
+    });
 
-      data.forEach(service => {
-        const uptime = uptimeMap[service.id];
-        const uptimeText = uptime ? uptime.uptime + '% (' + uptime.checks + ' checks)' : 'Geen data';
-        const card = document.createElement('div');
-        const statusClass = service.status || 'unknown';
-        card.className = 'card ' + statusClass;
-        card.innerHTML = `
-          <div><strong>${service.name}</strong> (${service.type})</div>
-          <div>Status: ${statusIcon(service.status)}</div>
-          <div class="meta">Laatste check: ${service.timestamp ? new Date(service.timestamp + 'Z').toLocaleString() : '–'}</div>
-          <div class="meta">Uptime (24u): ${uptimeText}</div>
-        `;
-        card.onclick = () => openModal(service, uptimeText);
-        dashboard.appendChild(card);
-      });
+    async function fetchServices() {
+      try {
+        const res = await fetch('/api/services/all');
+        const data = await res.json();
+        const list = document.getElementById('services-list');
+        list.innerHTML = '';
+        data.forEach(s => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <strong>${s.name}</strong> (${s.type})<br/>
+            Interval: ${s.interval_minutes || 1} min
+            <div class="actions">
+              <span class="btn-link" onclick="editService('${s.id}')">Bewerken</span>
+              <span class="btn-link" onclick="deleteService('${s.id}')">Verwijderen</span>
+              <span class="btn-link" onclick="checkNow('${s.id}')">Check nu</span>
+            </div>`;
+          list.appendChild(card);
+        });
+      } catch (error) {
+        document.getElementById('services-list').innerHTML = '<p><strong>Error:</strong> ' + error.message + '</p>';
+      }
     }
 
-    function statusIcon(status) {
-      if (status === 'online') return '✅ Online';
-      if (status === 'offline') return '❌ Offline';
-      return '❔ Onbekend';
+    async function editService(id) {
+      const res = await fetch('/api/services/' + id);
+      const s = await res.json();
+      document.getElementById('edit-id').value = s.id;
+      document.getElementById('name').value = s.name;
+      document.getElementById('type').value = s.type;
+      document.getElementById('url').value = s.url || '';
+      document.getElementById('host').value = s.host || '';
+      document.getElementById('port').value = s.port || '';
+      document.getElementById('interval').value = s.interval_minutes || 1;
+      typeSelect.dispatchEvent(new Event('change'));
     }
 
-    function openModal(service, uptimeText) {
-      const modal = document.getElementById('modal');
-      const body = document.getElementById('modal-body');
-      body.innerHTML = `
-        <h2>${service.name}</h2>
-        <p><strong>Type:</strong> ${service.type}</p>
-        <p><strong>Status:</strong> ${statusIcon(service.status)}</p>
-        <p><strong>Laatste check:</strong> ${service.timestamp ? new Date(service.timestamp + 'Z').toLocaleString() : '–'}</p>
-        <p><strong>Uptime:</strong> ${uptimeText}</p>
-        <button class="button" onclick="triggerCheck('${service.id}')">Check nu opnieuw</button>
-      `;
-      modal.style.display = 'flex';
+    async function deleteService(id) {
+      try {
+        await fetch('/api/services/' + id, { method: 'DELETE' });
+        fetchServices();
+      } catch (error) {
+        alert('Error deleting service: ' + error.message);
+      }
     }
 
-    async function triggerCheck(id) {
-      await fetch('/api/services/' + id + '/check-now', { method: 'POST' });
-      closeModal();
-      fetchStatus();
+    async function checkNow(id) {
+      try {
+        const res = await fetch('/api/services/' + id + '/check-now', { method: 'POST' });
+        const data = await res.json();
+        alert('Status: ' + data.status);
+      } catch (error) {
+        alert('Check failed: ' + error.message);
+      }
     }
 
-    fetchStatus();
-    setInterval(fetchStatus, 60000);
+    document.getElementById('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      try {
+        const editId = document.getElementById('edit-id').value;
+        const body = {
+          name: document.getElementById('name').value,
+          type: document.getElementById('type').value,
+          url: document.getElementById('url').value || null,
+          host: document.getElementById('host').value || null,
+          port: document.getElementById('port').value ? parseInt(document.getElementById('port').value) : null,
+          interval_minutes: parseInt(document.getElementById('interval').value) || 1
+        };
+        const method = editId ? 'PUT' : 'POST';
+        const endpoint = editId ? '/api/services/' + editId : '/api/services';
+        await fetch(endpoint, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        e.target.reset();
+        document.getElementById('edit-id').value = '';
+        fetchServices();
+      } catch (error) {
+        alert('Error saving service: ' + error.message);
+      }
+    });
+
+    fetchServices();
   </script>
 </body>
 </html>

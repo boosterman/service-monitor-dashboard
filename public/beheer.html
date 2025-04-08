@@ -115,10 +115,26 @@
     .btn-link:hover {
       opacity: 0.8;
     }
-  </style>
+  
+    .nav-link {
+      margin-right: auto;
+      margin-left: 0;
+      background: #eee;
+      color: #000;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .dark .nav-link {
+      background: #444;
+      color: #fff;
+    }
+
+</style>
 </head>
 <body>
-  <h1>
+  <h1><a href="/index.html" class="nav-link">Terug naar dashboard</a>
     Servicebeheer
     <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
   </h1>
