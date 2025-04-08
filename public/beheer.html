@@ -15,13 +15,18 @@
     body {
       font-family: sans-serif;
       margin: 0;
-      padding: 1rem;
+      padding: 1.5rem;
       transition: background 0.3s, color 0.3s;
     }
     .light body { background: #f9f9f9; color: #000; }
     .dark body { background: #121212; color: #f0f0f0; }
 
-    h1 { display: flex; justify-content: space-between; align-items: center; }
+    h1 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
 
     .theme-toggle {
       cursor: pointer;
@@ -32,17 +37,32 @@
     }
     .dark .theme-toggle { border-color: #666; }
 
-    label { display: block; margin-top: 1em; }
+    form {
+      max-width: 600px;
+      margin-bottom: 2rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .dark form {
+      background: #2b2b2b;
+    }
+
+    label {
+      display: block;
+      margin-top: 1em;
+    }
     input, select {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
+      padding: 10px;
+      margin-top: 4px;
       border-radius: 4px;
       border: 1px solid #ccc;
     }
 
     button {
-      margin-top: 1em;
+      margin-top: 1.5rem;
       padding: 10px 15px;
       border: none;
       background: #007bff;
@@ -55,37 +75,44 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;
-      margin-top: 2rem;
     }
     @media (min-width: 600px) {
       .card-container {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       }
     }
 
     .card {
       padding: 1rem;
-      border-radius: 8px;
+      border-radius: 10px;
       background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     .dark .card {
-      background: #2b2b2b;
+      background: #2a2a2a;
     }
 
     .actions {
-      margin-top: 0.5rem;
+      margin-top: 0.8rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
     .btn-link {
-      color: #007bff;
+      padding: 6px 12px;
+      background: #eee;
+      color: #000;
+      border-radius: 4px;
+      font-size: 0.9rem;
       cursor: pointer;
-      text-decoration: underline;
-      margin-right: 10px;
+      text-decoration: none;
     }
-
-    form {
-      max-width: 500px;
-      margin-bottom: 3rem;
+    .dark .btn-link {
+      background: #444;
+      color: #fff;
+    }
+    .btn-link:hover {
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -152,9 +179,9 @@
             <strong>${s.name}</strong> (${s.type})<br/>
             Interval: ${s.interval_minutes || 1} min
             <div class="actions">
-              <span class="btn-link" onclick="editService('${s.id}')">Edit</span>
-              <span class="btn-link" onclick="deleteService('${s.id}')">Delete</span>
-              <span class="btn-link" onclick="checkNow('${s.id}')">Check now</span>
+              <span class="btn-link" onclick="editService('${s.id}')">Bewerken</span>
+              <span class="btn-link" onclick="deleteService('${s.id}')">Verwijderen</span>
+              <span class="btn-link" onclick="checkNow('${s.id}')">Check nu</span>
             </div>`;
           list.appendChild(card);
         });
