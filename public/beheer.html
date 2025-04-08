@@ -1,20 +1,100 @@
+
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" class="light">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Servicebeheer</title>
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+    }
+  </script>
   <style>
-    body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      transition: background 0.3s, color 0.3s;
+    }
+    .light body { background: #f9f9f9; color: #000; }
+    .dark body { background: #121212; color: #f0f0f0; }
+
+    h1 { display: flex; justify-content: space-between; align-items: center; }
+
+    .theme-toggle {
+      cursor: pointer;
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.5rem;
+    }
+    .dark .theme-toggle { border-color: #666; }
+
     label { display: block; margin-top: 1em; }
-    input, select { width: 300px; padding: 8px; margin-top: 5px; }
-    button { margin-top: 1em; padding: 10px 15px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 2em; }
-    th, td { padding: 8px; border-bottom: 1px solid #ccc; }
-    .btn-link { color: blue; cursor: pointer; text-decoration: underline; margin-right: 10px; }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 1em;
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .card-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    @media (min-width: 600px) {
+      .card-container {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+    }
+
+    .card {
+      padding: 1rem;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .dark .card {
+      background: #2b2b2b;
+    }
+
+    .actions {
+      margin-top: 0.5rem;
+    }
+    .btn-link {
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+      margin-right: 10px;
+    }
+
+    form {
+      max-width: 500px;
+      margin-bottom: 3rem;
+    }
   </style>
 </head>
 <body>
-  <h1>Manage Services</h1>
+  <h1>
+    Servicebeheer
+    <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+  </h1>
+
   <form id="form">
     <input type="hidden" id="edit-id" />
     <label>Name: <input type="text" id="name" required /></label>
@@ -28,15 +108,20 @@
     <label id="host-label" style="display:none;">Host: <input type="text" id="host" /></label>
     <label id="port-label" style="display:none;">Port: <input type="number" id="port" /></label>
     <label>Interval (minutes): <input type="number" id="interval" min="1" value="1" /></label>
-    <button type="submit">Save</button>
+    <button type="submit">Opslaan</button>
   </form>
 
-  <table>
-    <thead><tr><th>Name</th><th>Type</th><th>Interval</th><th>Actions</th></tr></thead>
-    <tbody id="services-list"></tbody>
-  </table>
+  <div class="card-container" id="services-list"></div>
 
   <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      html.classList.toggle('dark');
+      html.classList.toggle('light');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
     const typeSelect = document.getElementById('type');
     const urlLabel = document.getElementById('url-label');
     const hostLabel = document.getElementById('host-label');
@@ -57,25 +142,24 @@
     async function fetchServices() {
       try {
         const res = await fetch('/api/services/all');
-        if (!res.ok) throw new Error('Kan services niet laden: ' + res.status);
         const data = await res.json();
         const list = document.getElementById('services-list');
         list.innerHTML = '';
         data.forEach(s => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${s.name}</td>
-            <td>${s.type}</td>
-            <td>${s.interval_minutes || 1}</td>
-            <td>
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <strong>${s.name}</strong> (${s.type})<br/>
+            Interval: ${s.interval_minutes || 1} min
+            <div class="actions">
               <span class="btn-link" onclick="editService('${s.id}')">Edit</span>
               <span class="btn-link" onclick="deleteService('${s.id}')">Delete</span>
               <span class="btn-link" onclick="checkNow('${s.id}')">Check now</span>
-            </td>`;
-          list.appendChild(row);
+            </div>`;
+          list.appendChild(card);
         });
       } catch (error) {
-        document.getElementById('services-list').innerHTML = '<tr><td colspan="4"><strong>Error:</strong> ' + error.message + '</td></tr>';
+        document.getElementById('services-list').innerHTML = '<p><strong>Error:</strong> ' + error.message + '</p>';
       }
     }
 
