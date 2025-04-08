@@ -1,74 +1,80 @@
+
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en" class="light">
 <head>
-  <meta charset="UTF-8">
-  <title>Status Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Service Monitor Dashboard</title>
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
+    }
+  </script>
   <style>
-    body { font-family: sans-serif; padding: 2em; background: #f4f4f4; }
-    h1 { color: #333; }
-    .timestamp { font-size: 0.9em; color: #666; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-    th, td { padding: 10px; border-bottom: 1px solid #ccc; text-align: left; }
-    .online { color: green; font-weight: bold; }
-    .offline { color: red; font-weight: bold; }
-    .unknown { color: orange; font-weight: bold; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      transition: background 0.3s, color 0.3s;
+    }
+    .light body {
+      background: #fff;
+      color: #000;
+    }
+    .dark body {
+      background: #121212;
+      color: #f0f0f0;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 600px) {
+      .dashboard {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+    }
+    .card {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .dark .card {
+      background: #1e1e1e;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.5rem;
+    }
+    .dark .theme-toggle {
+      border-color: #666;
+    }
   </style>
 </head>
 <body>
-  <h1>Status van Services</h1>
-  <div class="timestamp" id="timestamp">Laatst bijgewerkt: -</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Laatste Check</th>
-        <th>Uptime (24u)</th>
-      </tr>
-    </thead>
-    <tbody id="status-body">
-      <tr><td colspan="5">Loading...</td></tr>
-    </tbody>
-  </table>
-
+  <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+  <h1>Service Monitor Dashboard</h1>
+  <div class="dashboard">
+    <div class="card">Service A - ✅ Online</div>
+    <div class="card">Service B - ❌ Offline</div>
+    <div class="card">Service C - ✅ Online</div>
+  </div>
   <script>
-    async function fetchStatus() {
-      const [res, uptimeRes] = await Promise.all([
-        fetch('/api/services'),
-        fetch('/api/uptime')
-      ]);
-      const data = await res.json();
-      const uptimeData = await uptimeRes.json();
-      const uptimeMap = Object.fromEntries(uptimeData.map(u => [u.id, u]));
-
-      const tbody = document.getElementById('status-body');
-      const ts = document.getElementById('timestamp');
-      const now = new Date();
-      ts.textContent = 'Laatst bijgewerkt: ' + now.toLocaleString();
-      tbody.innerHTML = '';
-
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">Geen services gevonden.</td></tr>';
-      }
-
-      data.forEach(s => {
-        const uptime = uptimeMap[s.id];
-        const uptimeText = uptime ? uptime.uptime + '% (' + uptime.checks + ' checks)' : 'Geen data';
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${s.name}</td>
-          <td>${s.type}</td>
-          <td class="${s.status || 'unknown'}">${s.status || 'Onbekend'}</td>
-          <td>${s.timestamp ? new Date(s.timestamp + 'Z').toLocaleString() : 'Nog niet gecontroleerd'}</td>
-          <td>${uptimeText}</td>
-        `;
-        tbody.appendChild(row);
-      });
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      html.classList.toggle('dark');
+      html.classList.toggle('light');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
     }
-
-    fetchStatus();
-    setInterval(fetchStatus, 60000);
   </script>
 </body>
 </html>
