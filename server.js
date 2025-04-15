@@ -197,9 +197,7 @@ app.get('/api/stream', (req, res) => {
     'Connection': 'keep-alive',
   });
   res.flushHeaders();
-  res.write('retry: 10000
-
-');
+  res.write('retry: 10000\n\n');
 
   sseClients.push(res);
 
