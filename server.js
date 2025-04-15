@@ -141,9 +141,11 @@ function checkService(service, callback) {
 }
 
 function scheduleChecks() {
+  console.log('[INFO] scheduleChecks gestart');
   db.all('SELECT * FROM services', [], (err, services) => {
     if (err) return;
     services.forEach(service => {
+      console.log(`[INFO] Start check interval voor service: ${service.name} (${service.id}), elke ${service.interval_minutes || 1} minuut`);
       const interval = (service.interval_minutes || 1) * 60000;
       if (intervals[service.id]) clearInterval(intervals[service.id]);
       intervals[service.id] = setInterval(() => {
