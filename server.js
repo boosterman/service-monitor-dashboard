@@ -165,7 +165,7 @@ function scheduleChecks() {
       const interval = (service.interval_minutes || 1) * 60000;
       if (intervals[service.id]) clearInterval(intervals[service.id]);
       checkService(service, (status) => {
-        db.run(\'INSERT INTO status_logs (service_id, status) VALUES (?, ?)\', [service.id, status]);
+        db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [service.id, status]);
       });
 
 intervals[service.id] = setInterval(() => {
