@@ -58,7 +58,7 @@ app.get('/api/services/all', (req, res) => {
 });
 
 app.get('/api/services/:id', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   db.get('SELECT * FROM services WHERE id = ?', [id], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: 'Service niet gevonden' });
@@ -67,7 +67,7 @@ app.get('/api/services/:id', (req, res) => {
 });
 
 app.post('/api/services/:id/check-now', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   db.get('SELECT * FROM services WHERE id = ?', [id], (err, service) => {
     if (err || !service) return res.status(404).json({ error: 'Service niet gevonden' });
     checkService(service, (status) => {
@@ -96,7 +96,7 @@ app.post('/api/services', (req, res) => {
 });
 
 app.put('/api/services/:id', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   const { name, type, url, host, port, interval_minutes } = req.body;
   const sql = `
     UPDATE services
@@ -106,27 +106,11 @@ app.put('/api/services/:id', (req, res) => {
   db.run(sql, [name, type, url, host, port, interval_minutes, id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ updated: this.changes });
-
-    // Herstart monitoring voor deze service
-    if (intervals[id]) clearInterval(intervals[id]);
-    db.get('SELECT * FROM services WHERE id = ?', [id], (err, service) => {
-      if (err || !service) return;
-      const interval = (service.interval_minutes || 1) * 60000;
-      console.log(`[INFO] Interval opnieuw gestart voor service: ${service.name} (${service.id}), elke ${service.interval_minutes || 1} minuut`);
-      checkService(service, (status) => {
-        db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [service.id, status]);
-      });
-      intervals[id] = setInterval(() => {
-        checkService(service, (status) => {
-          db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [service.id, status]);
-        });
-      }, interval);
-    });
   });
 });
 
 app.delete('/api/services/:id', (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   db.run('DELETE FROM services WHERE id = ?', [id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ deleted: this.changes });
@@ -157,18 +141,12 @@ function checkService(service, callback) {
 }
 
 function scheduleChecks() {
-  console.log('[INFO] scheduleChecks gestart');
   db.all('SELECT * FROM services', [], (err, services) => {
     if (err) return;
     services.forEach(service => {
-      console.log(`[INFO] Start check interval voor service: ${service.name} (${service.id}), elke ${service.interval_minutes || 1} minuut`);
       const interval = (service.interval_minutes || 1) * 60000;
       if (intervals[service.id]) clearInterval(intervals[service.id]);
-      checkService(service, (status) => {
-        db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [service.id, status]);
-      });
-
-intervals[service.id] = setInterval(() => {
+      intervals[service.id] = setInterval(() => {
         checkService(service, (status) => {
           db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [service.id, status]);
         });
@@ -178,6 +156,6 @@ intervals[service.id] = setInterval(() => {
 }
 
 scheduleChecks();
-scheduleChecks(); // Direct opstarten, elk service krijgt eigen interval
+setInterval(scheduleChecks, 10 * 60000);
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
