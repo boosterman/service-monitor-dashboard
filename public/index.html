@@ -6,19 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Status Dashboard</title>
   <script>
-// Live SSE verbinding
-const evtSource = new EventSource("/api/stream");
-evtSource.onmessage = function(event) {
-  const update = JSON.parse(event.data);
-  const row = document.querySelector(`[data-id='${update.id}']`);
-  if (row) {
-    const statusCell = row.querySelector('.status');
-    const timeCell = row.querySelector('.timestamp');
-    if (statusCell) statusCell.textContent = update.status;
-    if (timeCell) timeCell.textContent = new Date(update.timestamp).toLocaleTimeString();
-  }
-};
-
     if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.classList.remove('light');
       document.documentElement.classList.add('dark');
@@ -152,19 +139,6 @@ evtSource.onmessage = function(event) {
   </div>
 
   <script>
-// Live SSE verbinding
-const evtSource = new EventSource("/api/stream");
-evtSource.onmessage = function(event) {
-  const update = JSON.parse(event.data);
-  const row = document.querySelector(`[data-id='${update.id}']`);
-  if (row) {
-    const statusCell = row.querySelector('.status');
-    const timeCell = row.querySelector('.timestamp');
-    if (statusCell) statusCell.textContent = update.status;
-    if (timeCell) timeCell.textContent = new Date(update.timestamp).toLocaleTimeString();
-  }
-};
-
     function toggleTheme() {
       const html = document.documentElement;
       const isDark = html.classList.contains('dark');
