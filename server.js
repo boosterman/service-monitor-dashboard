@@ -58,7 +58,7 @@ app.get('/api/services/all', (req, res) => {
 });
 
 app.get('/api/services/:id', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
   db.get('SELECT * FROM services WHERE id = ?', [id], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: 'Service niet gevonden' });
@@ -67,7 +67,7 @@ app.get('/api/services/:id', (req, res) => {
 });
 
 app.post('/api/services/:id/check-now', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
   db.get('SELECT * FROM services WHERE id = ?', [id], (err, service) => {
     if (err || !service) return res.status(404).json({ error: 'Service niet gevonden' });
     checkService(service, (status) => {
@@ -96,7 +96,7 @@ app.post('/api/services', (req, res) => {
 });
 
 app.put('/api/services/:id', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
   const { name, type, url, host, port, interval_minutes } = req.body;
   const sql = `
     UPDATE services
@@ -126,7 +126,7 @@ app.put('/api/services/:id', (req, res) => {
 });
 
 app.delete('/api/services/:id', (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
   db.run('DELETE FROM services WHERE id = ?', [id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ deleted: this.changes });
