@@ -147,6 +147,12 @@
       localStorage.setItem('theme', isDark ? 'light' : 'dark');
     }
 
+    function minutesAgo(timestamp) {
+      const then = new Date(timestamp + 'Z');
+      const now = new Date();
+      return Math.floor((now - then) / 60000);
+    }
+
     function closeModal() {
       document.getElementById('modal').style.display = 'none';
     }
@@ -179,7 +185,7 @@
         card.innerHTML = `
           <div><strong>${service.name}</strong> (${service.type})</div>
           <div>Status: ${statusIcon(service.status)}</div>
-          <div class="meta">Laatste check: ${service.timestamp ? new Date(service.timestamp + 'Z').toLocaleString() : '–'}</div>
+          <div class="meta">Laatste check: ${service.timestamp ? minutesAgo(service.timestamp) + ' min geleden' : '–'}</div>
           <div class="meta">Uptime (24u): ${uptimeText}</div>
         `;
         card.onclick = () => openModal(service, uptimeText);
@@ -200,7 +206,7 @@
         <h2>${service.name}</h2>
         <p><strong>Type:</strong> ${service.type}</p>
         <p><strong>Status:</strong> ${statusIcon(service.status)}</p>
-        <p><strong>Laatste check:</strong> ${service.timestamp ? new Date(service.timestamp + 'Z').toLocaleString() : '–'}</p>
+        <p><strong>Laatste check:</strong> ${service.timestamp ? minutesAgo(service.timestamp) + ' min geleden' : '–'}</p>
         <p><strong>Uptime:</strong> ${uptimeText}</p>
         <button class="button" onclick="triggerCheck('${service.id}')">Check nu opnieuw</button>
       `;
