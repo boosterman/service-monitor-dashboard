@@ -77,6 +77,7 @@ app.post('/api/services/:id/check-now', (req, res) => {
   });
 });
 
+
 app.post('/api/services', (req, res) => {
   let { id, name, type, url, host, port, interval_minutes } = req.body;
   id = id || name.toLowerCase().replace(/\s+/g, '-');
@@ -91,7 +92,23 @@ app.post('/api/services', (req, res) => {
   `;
   db.run(sql, [id, name, type, url, host, port, interval_minutes || 1], function (err) {
     if (err) return res.status(500).json({ error: err.message });
+
+    // Directe check na toevoegen
+    checkService({ id, name, type, url, host, port }, (status) => {
+      db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [id, status]);
+    });
+
+    // Direct interval starten
+    const interval = (interval_minutes || 1) * 60000;
+    if (intervals[id]) clearInterval(intervals[id]);
+    intervals[id] = setInterval(() => {
+      checkService({ id, name, type, url, host, port }, (status) => {
+        db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [id, status]);
+      });
+    }, interval);
+
     res.json({ created: id });
+
   });
 });
 
