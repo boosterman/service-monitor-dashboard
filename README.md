@@ -80,4 +80,3 @@ The app will run on the default Render port (provided by environment).
 
 ---
 
-Created by Adaptable (https://adaptable.nl)
