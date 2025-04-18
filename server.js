@@ -1,40 +1,40 @@
-const express = require('express'); // Import the Express framework
-const path = require('path'); // Core module for file and directory paths
-const cors = require('cors'); // Middleware for enabling CORS (Cross-Origin Resource Sharing)
-const bodyParser = require('body-parser'); // Middleware to parse incoming JSON bodies
-const sqlite3 = require('sqlite3').verbose(); // SQLite3 database driver
-const net = require('net'); // Built-in TCP networking module
-const axios = require('axios'); // HTTP client for making requests
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const sqlite3 = require('sqlite3').verbose();
+const net = require('net');
+const axios = require('axios');
 
-const app = express(); // Create an Express application
-const PORT = process.env.PORT || 3000; // Use environment port or default to 3000
-app.use(cors()); // Enable CORS for all routes
-app.use(bodyParser.json()); // Enable parsing of JSON request bodies
-app.use(express.static('public')); // Serve static files from 'public' directory
-const db = new sqlite3.Database('./monitor.db'); // Initialize SQLite database connection
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static('public'));
+const db = new sqlite3.Database('./monitor.db');
 
-const intervals = {}; // service ID -> interval reference // Store interval references for each service ID
+const intervals = {}; // service-id -> interval reference
 
-app.get('/api/services', (req, res) => { // Define GET API endpoint
+app.get('/api/services', (req, res) => {
   const query = `
-    SELECT s.id, s.name, s.type, sl.status, sl.timestamp // SQL query to fetch data
+    SELECT s.id, s.name, s.type, sl.status, sl.timestamp
     FROM services s
     LEFT JOIN (
-      SELECT service_id, status, MAX(timestamp) as timestamp // SQL query to fetch data
+      SELECT service_id, status, MAX(timestamp) as timestamp
       FROM status_logs
       GROUP BY service_id
     ) sl ON s.id = sl.service_id
     ORDER BY s.name
   `;
   db.all(query, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
-    res.json(rows); // Send JSON response back to client
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
   });
 });
 
-app.get('/api/uptime', (req, res) => { // Define GET API endpoint
+app.get('/api/uptime', (req, res) => {
   const sql = `
-    SELECT s.id, s.name, // SQL query to fetch data
+    SELECT s.id, s.name,
       ROUND(
         100.0 * SUM(CASE WHEN sl.status = 'online' THEN 1 ELSE 0 END) / COUNT(sl.id), 1
       ) AS uptime,
@@ -45,45 +45,45 @@ app.get('/api/uptime', (req, res) => { // Define GET API endpoint
     GROUP BY s.id
   `;
   db.all(sql, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
-    res.json(rows); // Send JSON response back to client
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
   });
 });
 
-app.get('/api/services/all', (req, res) => { // Define GET API endpoint
-  db.all('SELECT * FROM services', [], (err, rows) => { // SQL query to fetch data
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
-    res.json(rows); // Send JSON response back to client
+app.get('/api/services/all', (req, res) => {
+  db.all('SELECT * FROM services', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
   });
 });
 
-app.get('/api/services/:id', (req, res) => { // Define GET API endpoint
+app.get('/api/services/:id', (req, res) => {
   const id = req.params.id;
-  db.get('SELECT * FROM services WHERE id = ?', [id], (err, row) => { // SQL query to fetch data
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
-    if (!row) return res.status(404).json({ error: 'Service not found' }); // Send error response if something goes wrong
-    res.json(row); // Send JSON response back to client
+  db.get('SELECT * FROM services WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Service niet gevonden' });
+    res.json(row);
   });
 });
 
-app.post('/api/services/:id/check-now', (req, res) => { // Define POST API endpoint
+app.post('/api/services/:id/check-now', (req, res) => {
   const id = req.params.id;
-  db.get('SELECT * FROM services WHERE id = ?', [id], (err, service) => { // SQL query to fetch data
-    if (err || !service) return res.status(404).json({ error: 'Service not found' }); // Send error response if something goes wrong
+  db.get('SELECT * FROM services WHERE id = ?', [id], (err, service) => {
+    if (err || !service) return res.status(404).json({ error: 'Service niet gevonden' });
     checkService(service, (status) => {
       db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [id, status]);
-      res.json({ status }); // Send JSON response back to client
+      res.json({ status });
     });
   });
 });
 
 
-app.post('/api/services', (req, res) => { // Define POST API endpoint
+app.post('/api/services', (req, res) => {
   let { id, name, type, url, host, port, interval_minutes } = req.body;
   id = id || name.toLowerCase().replace(/\s+/g, '-');
 
   if (!id || !name || !type || (!url && (!host || !port))) {
-    return res.status(400).json({ error: 'Required fields are missing' }); // Send error response if something goes wrong
+    return res.status(400).json({ error: 'Vereiste velden ontbreken' });
   }
 
   const sql = `
@@ -91,14 +91,14 @@ app.post('/api/services', (req, res) => { // Define POST API endpoint
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   db.run(sql, [id, name, type, url, host, port, interval_minutes || 1], function (err) {
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
+    if (err) return res.status(500).json({ error: err.message });
 
-    // Immediate check after creation
+    // Directe check na toevoegen
     checkService({ id, name, type, url, host, port }, (status) => {
       db.run('INSERT INTO status_logs (service_id, status) VALUES (?, ?)', [id, status]);
     });
 
-    // Immediately start interval
+    // Direct interval starten
     const interval = (interval_minutes || 1) * 60000;
     if (intervals[id]) clearInterval(intervals[id]);
     intervals[id] = setInterval(() => {
@@ -107,12 +107,12 @@ app.post('/api/services', (req, res) => { // Define POST API endpoint
       });
     }, interval);
 
-    res.json({ created: id }); // Send JSON response back to client
+    res.json({ created: id });
 
   });
 });
 
-app.put('/api/services/:id', (req, res) => { // Define PUT API endpoint
+app.put('/api/services/:id', (req, res) => {
   const id = req.params.id;
   const { name, type, url, host, port, interval_minutes } = req.body;
   const sql = `
@@ -121,20 +121,20 @@ app.put('/api/services/:id', (req, res) => { // Define PUT API endpoint
     WHERE id = ?
   `;
   db.run(sql, [name, type, url, host, port, interval_minutes, id], function (err) {
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
-    res.json({ updated: this.changes }); // Send JSON response back to client
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ updated: this.changes });
   });
 });
 
-app.delete('/api/services/:id', (req, res) => { // Define DELETE API endpoint
+app.delete('/api/services/:id', (req, res) => {
   const id = req.params.id;
   db.run('DELETE FROM services WHERE id = ?', [id], function (err) {
-    if (err) return res.status(500).json({ error: err.message }); // Send error response if something goes wrong
-    res.json({ deleted: this.changes }); // Send JSON response back to client
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ deleted: this.changes });
   });
 });
 
-function checkService(service, callback) { // Function to check service availability (HTTP or TCP)
+function checkService(service, callback) {
   if (service.type === 'http') {
     axios.get(service.url, { timeout: 5000 })
       .then(() => callback('online'))
@@ -157,8 +157,8 @@ function checkService(service, callback) { // Function to check service availabi
   }
 }
 
-function scheduleChecks() { // Setup recurring checks for all services
-  db.all('SELECT * FROM services', [], (err, services) => { // SQL query to fetch data
+function scheduleChecks() {
+  db.all('SELECT * FROM services', [], (err, services) => {
     if (err) return;
     services.forEach(service => {
       const interval = (service.interval_minutes || 1) * 60000;
@@ -175,4 +175,4 @@ function scheduleChecks() { // Setup recurring checks for all services
 scheduleChecks();
 setInterval(scheduleChecks, 10 * 60000);
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`)); // Start the Express server
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
